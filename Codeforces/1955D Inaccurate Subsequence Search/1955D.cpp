@@ -4,5 +4,6 @@ using namespace std;
 
 int main() {
     freopen("Phuong.inp", "r", stdin);
-        
+
+    cout << "Hello World!";    
 }
