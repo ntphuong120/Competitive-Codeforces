@@ -1,70 +1,77 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#include <cassert>
 
 using namespace std;
 
-void readInput (vector<int> &p, vector<int> &a, int &n, long long &k, long long &pb, long long &ps) {
-    cin >> n >> k >> pb >> ps;
-
-    p.resize(n + 1);
+long long n, k, location_bodya, location_sasha;
+ 
+// Đầu vào
+void readInput(vector<long long> &p, vector<long long> &a) {
+    cin >> n >> k >> location_bodya >> location_sasha;
+ 
     a.resize(n + 1);
-    for (int i = 1; i <= n; ++i) cin >> p[i];
-    for (int i = 1; i <= n; ++i) cin >> a[i];
+    p.resize(n + 1);
+    for(long long i = 1; i <= n; ++i) cin >> p[i];
+    for(long long i = 1; i <= n; ++i) cin >> a[i];
 }
 
-long long path (vector<int> &p, vector<int> &a, long long k, long long s, long long t) {
-    long long score = 0;
-    
-    // Dùng kỹ thuật truy vết đường đi
-    while (1) {
-        if (t == s || k <= 0 || k > 1e6) break; // cặn
-        score += a[s];
-        s = p[s];
-        --k; // lượt
+// Hàm dùng để lưu vị trỉ đường đi bằng giá trị của mảng "a"
+void find(vector<long long> &p, vector<long long> &a, vector<long long> &path, long long pos) {
+    vector<bool> vis(p.size()); // vector dùng để đánh dấu những vị trí "p" đã được đi qua
+
+    path.push_back(0);
+    // kỹ thuật truy vết đường đi
+    while(!vis[pos]) {
+        vis[pos] = 1;
+        // Lưu vị trí đã đi qua bằng giá trị mảng "a" để có thể sử dụng để tính toán
+        path.push_back(a[pos]);
+        pos = p[pos];
     }
-
-    // Trường hợp khi đã tới vị trí đã định mà còn dư lượt thì ta nhân vào (= stay)
-    if (k > 1) score = score + a[s] * k;
-
-    return score;
 }
 
-void solve (vector<int> &p, vector<int> &a, const int &n, long long k, long long &pb, long long &ps) {
-    long long score_b = 0, score_s = 0;
-
-    // Ta sẽ tìm giá trị max mà bodya và sasha có thể có được
-    long long stand1 = a[pb]*k; // Trường hợp đứng yên không thay đổi vị trí
-    for (int i = 1; i <= n; ++i) {
-        long long gtmax = path(p, a, k, pb, i);
-
-        score_b = max(score_b, max(gtmax, stand1));
+// tìm điểm lớn nhất mà bodya và sasha có thể đạt được
+long long score(vector<long long> &path, long long k) {
+    /*
+        score: dùng cập nhật tổng điểm những vị trí đã đi qua
+        mx: lưu giá trị lớn nhất
+        cur: dùng để tính giá trị tại các điểm đã đi qua + với vị trí hiện tại * k vì còn dư lượt
+    */
+    long long score = 0, mx = 0, cur = 0;
+    for(long long i = 1; i < path.size(); ++i) {
+        if(k < i) break;
+        cur = score + path[i]*(k - i + 1);
+        mx = max(mx, cur);
+        score += path[i];
     }
 
-    long long stand2 = a[ps]*k;
-    for (int i = 1; i <= n; ++i) {
-        long long gtmax = path(p, a, k, ps, i);
+    return mx;
+}
 
-        score_s = max(score_s, max(gtmax, stand2));
-    }
+void solve() {
+    vector<long long> p, a;
+    readInput(p, a);
 
-    if (score_b > score_s) cout << "Bodya" << '\n';
-    else if (score_b < score_s) cout << "Sasha" << '\n';
+    vector<long long> pathB, pathS;
+    find(p, a, pathB, location_bodya);
+    find(p, a, pathS, location_sasha);
+
+    long long scoreB = 0, scoreS = 0;
+    scoreB = score(pathB, k);
+    scoreS = score(pathS, k);
+
+    cout << scoreB << ' ' << scoreS << '\n';
+
+    if(scoreB > scoreS) cout << "Bodya" << '\n';
+    else if(scoreB < scoreS) cout << "Sasha" << '\n';
     else cout << "Draw" << '\n';
+    
 }
 
-int main () {
-    //freopen("Phuong.inp", "r", stdin);
+int main() {
     int t;
     cin >> t;
 
-    while (t--) {
-        int n;
-        long long k, pb, ps;
-        vector<int> p, a;
-
-        readInput(p, a, n, k, pb, ps);
-        solve(p, a, n, k, pb, ps);
+    while(t--) {
+        solve();
     }
-}  
+}
